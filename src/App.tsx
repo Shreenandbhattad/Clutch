@@ -6,7 +6,6 @@ import Inbox from "./pages/Inbox";
 import ReadLater from "./pages/ReadLater";
 import Clusters from "./pages/Clusters";
 import PagesView from "./pages/PagesView";
-import BoardsView from "./pages/BoardsView";
 import { getUser } from "./store";
 import "./styles.css";
 
@@ -60,7 +59,6 @@ export default function App() {
         <Route path="later" element={<ReadLater />} />
         <Route path="clusters" element={<Clusters />} />
         <Route path="pages" element={<PagesView />} />
-        <Route path="boards" element={<BoardsView />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

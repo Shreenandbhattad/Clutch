@@ -3,9 +3,9 @@ import {
   type ReactNode,
 } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import type { Item, Cluster, Page, Board, User, Intent } from "../types";
+import type { Item, Cluster, Page, User, Intent } from "../types";
 import {
-  loadState, saveItems, saveClusters, savePages, saveBoards,
+  loadState, saveItems, saveClusters, savePages,
   getUser, clearUser, getPendingCapture,
   buildTags, buildSummary, assignCluster, buildCover,
 } from "../store";
@@ -17,11 +17,9 @@ type AppCtx = {
   items: Item[];
   clusters: Cluster[];
   pages: Page[];
-  boards: Board[];
   setItems: (v: Item[]) => void;
   setClusters: (v: Cluster[]) => void;
   setPages: (v: Page[]) => void;
-  setBoards: (v: Board[]) => void;
   selectedItemId: string;
   setSelectedItemId: (id: string) => void;
   inspectorWidth: number;
@@ -43,7 +41,6 @@ const NAV = [
   { to: "/app/later",    label: "Read Later", icon: "★",  exact: false },
   { to: "/app/clusters", label: "Clusters",   icon: "✦",  exact: false },
   { to: "/app/pages",    label: "Pages",      icon: "◻",  exact: false },
-  { to: "/app/boards",   label: "Boards",     icon: "⊞",  exact: false },
 ];
 
 // ─── AppLayout ───────────────────────────────────────────
@@ -58,7 +55,6 @@ export default function AppLayout() {
   const [items,    setItemsState]    = useState<Item[]>   (() => loadState().items);
   const [clusters, setClustersState] = useState<Cluster[]>(() => loadState().clusters);
   const [pages,    setPagesState]    = useState<Page[]>   (() => loadState().pages);
-  const [boards,   setBoardsState]   = useState<Board[]>  (() => loadState().boards);
   const [selectedItemId, setSelectedItemId] = useState<string>(items[0]?.id ?? "");
 
   const [toastMsg,   setToastMsg]   = useState<string | null>(null);
@@ -100,7 +96,6 @@ export default function AppLayout() {
   const setItems    = (v: Item[])    => { setItemsState(v);    saveItems(v); };
   const setClusters = (v: Cluster[]) => { setClustersState(v); saveClusters(v); };
   const setPages    = (v: Page[])    => { setPagesState(v);    savePages(v); };
-  const setBoards   = (v: Board[])   => { setBoardsState(v);   saveBoards(v); };
 
   // ─── Toast ──────────────────────────────────────────
   const toast = (msg: string) => {
@@ -146,8 +141,8 @@ export default function AppLayout() {
 
   return (
     <Ctx.Provider value={{
-      user, items, clusters, pages, boards,
-      setItems, setClusters, setPages, setBoards,
+      user, items, clusters, pages,
+      setItems, setClusters, setPages,
       selectedItemId, setSelectedItemId,
       inspectorWidth,
       toast, showShare,
@@ -156,7 +151,7 @@ export default function AppLayout() {
         {/* ── Sidebar ── */}
         <aside
           className="sidebar"
-          style={{ width: sidebarWidth, minWidth: sidebarWidth, position: "relative" }}
+          style={{ width: sidebarWidth, minWidth: sidebarWidth }}
         >
           <div className="sidebar-logo">
             <div className="logo-mark" style={{ width: 28, height: 28, fontSize: "0.85rem" }}>C</div>
@@ -193,16 +188,16 @@ export default function AppLayout() {
             </div>
             <button className="sidebar-signout btn" title="Sign out" onClick={handleSignOut}>⎋</button>
           </div>
-
-          {/* Resize handle */}
-          <div
-            className="resize-handle resize-handle-right"
-            onPointerDown={e => {
-              sidebarResizeRef.current = { startX: e.clientX, startW: sidebarWidth };
-              e.currentTarget.setPointerCapture(e.pointerId);
-            }}
-          />
         </aside>
+
+        {/* ── Sidebar resize handle (outside aside so overflow doesn't clip it) ── */}
+        <div
+          className="sidebar-resize-divider"
+          onPointerDown={e => {
+            sidebarResizeRef.current = { startX: e.clientX, startW: sidebarWidth };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+        />
 
         {/* ── Main ── */}
         <div className="main">

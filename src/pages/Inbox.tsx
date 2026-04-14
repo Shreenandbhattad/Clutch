@@ -3,29 +3,27 @@ import { intents } from "../data";
 import type { Intent } from "../types";
 import {
   useApp,
-  TopBar, SectionHead, ItemCardGrid, ItemCardList, InspectorPanel, IntentBadge, fmt,
+  TopBar, ItemCardGrid, ItemCardList, InspectorPanel, IntentBadge, fmt,
 } from "./AppLayout";
 
 type View = "grid" | "list";
 type TimeFilter = "all" | "week" | "month";
 
 const TIME_FILTERS = [
-  { id: "all" as TimeFilter,   label: "All time" },
-  { id: "week" as TimeFilter,  label: "Last 7 days" },
-  { id: "month" as TimeFilter, label: "Last 30 days" },
+  { id: "all" as TimeFilter,   label: "All" },
+  { id: "week" as TimeFilter,  label: "7 days" },
+  { id: "month" as TimeFilter, label: "30 days" },
 ];
 
 export default function Inbox() {
   const { items, selectedItemId, setSelectedItemId, showShare } = useApp();
 
   const [search, setSearch] = useState("");
-  const [tagFilter, setTagFilter] = useState("All");
   const [intentFilter, setIntentFilter] = useState<Intent | "All">("All");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("all");
   const [viewMode, setViewMode] = useState<View>("grid");
 
   const deferred = useDeferredValue(search);
-  const allTags = ["All", ...Array.from(new Set(items.flatMap(i => i.tags))).sort()];
 
   const filtered = items
     .filter(item => {
@@ -33,7 +31,6 @@ export default function Inbox() {
       return [item.title, item.source, item.summary, item.snippet, item.tags.join(" ")]
         .join(" ").toLowerCase().includes(deferred.toLowerCase());
     })
-    .filter(item => tagFilter === "All" || item.tags.includes(tagFilter))
     .filter(item => intentFilter === "All" || item.intent === intentFilter)
     .filter(item => {
       const days = timeFilter === "week" ? 7 : timeFilter === "month" ? 30 : Infinity;
@@ -72,42 +69,27 @@ export default function Inbox() {
         </TopBar>
 
         <div className="page">
-          {/* Filters */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            {/* Tag filter */}
-            <div className="filter-bar">
-              {allTags.map(tag => (
+          {/* Filters — single row */}
+          <div className="filter-bar">
+            {(["All", ...intents] as (Intent | "All")[]).map(intent => (
+              <button
+                key={intent}
+                className={`filter-chip ${intentFilter === intent ? "active" : ""}`}
+                onClick={() => setIntentFilter(intent)}
+              >
+                {intent}
+              </button>
+            ))}
+            <div style={{ marginLeft: "auto", display: "flex", gap: "0.3rem", borderLeft: "1px solid var(--border-2)", paddingLeft: "0.6rem" }}>
+              {TIME_FILTERS.map(f => (
                 <button
-                  key={tag}
-                  className={`filter-chip ${tagFilter === tag ? "active" : ""}`}
-                  onClick={() => setTagFilter(tag)}
+                  key={f.id}
+                  className={`filter-chip ${timeFilter === f.id ? "active" : ""}`}
+                  onClick={() => setTimeFilter(f.id)}
                 >
-                  {tag}
+                  {f.label}
                 </button>
               ))}
-            </div>
-            {/* Intent + time filter */}
-            <div className="filter-bar">
-              {(["All", ...intents] as (Intent | "All")[]).map(intent => (
-                <button
-                  key={intent}
-                  className={`filter-chip ${intentFilter === intent ? "active" : ""}`}
-                  onClick={() => setIntentFilter(intent)}
-                >
-                  {intent}
-                </button>
-              ))}
-              <div style={{ marginLeft: "auto", display: "flex", gap: "0.3rem" }}>
-                {TIME_FILTERS.map(f => (
-                  <button
-                    key={f.id}
-                    className={`filter-chip ${timeFilter === f.id ? "active" : ""}`}
-                    onClick={() => setTimeFilter(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
