@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clutch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <div class="logo-mark">C</div>
+        <span class="logo-text">Clutch</span>
+      </div>
+      <div class="status-dot" id="status-dot" title="Capturing page…"></div>
+    </div>
+
+    <!-- Page preview -->
+    <div class="preview" id="preview-cover">
+      <div class="preview-overlay">
+        <div class="preview-source" id="preview-source">Loading…</div>
+        <div class="preview-title" id="preview-title">Detecting page…</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form">
+      <div class="field">
+        <label class="label">Title</label>
+        <input class="input" id="title-input" type="text" placeholder="Page title" />
+      </div>
+
+      <div class="field">
+        <label class="label">Intent</label>
+        <div class="intent-row" id="intent-row">
+          <button class="intent-btn active" data-intent="Read later">Read later</button>
+          <button class="intent-btn" data-intent="Research">Research</button>
+          <button class="intent-btn" data-intent="Idea">Idea</button>
+          <button class="intent-btn" data-intent="Reference">Reference</button>
+          <button class="intent-btn" data-intent="Inspiration">Inspiration</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Quick note (optional)</label>
+        <textarea class="input textarea" id="note-input" placeholder="Why are you saving this?" rows="2"></textarea>
+      </div>
+
+      <button class="save-btn" id="save-btn">
+        Save to Clutch
+      </button>
+
+      <!-- Success state -->
+      <div class="success" id="success-state" style="display:none">
+        <div class="success-icon">✓</div>
+        <div class="success-text">Saved!</div>
+        <div class="success-sub" id="success-sub">Opening Clutch…</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <a href="#" id="open-clutch">Open Clutch workspace ↗</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

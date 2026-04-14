@@ -1,0 +1,204 @@
+/* Clutch Extension Popup */
+:root {
+  --accent: #00693E;
+  --accent-hover: #005C35;
+  --accent-subtle: #D4EDE1;
+  --text: #111111;
+  --text-2: #555555;
+  --text-3: #888888;
+  --border: rgba(0,0,0,0.09);
+  --surface: #FFFFFF;
+  --bg: #F8F7F4;
+  --r: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--text);
+  width: 340px;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { display: flex; flex-direction: column; }
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-mark {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.logo-text { font-weight: 800; font-size: 14px; letter-spacing: -0.02em; }
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,105,62,0.2);
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(0,105,62,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(0,105,62,0.1); }
+}
+
+/* Preview */
+.preview {
+  height: 100px;
+  background: linear-gradient(135deg, #DBE9FA, #8BB5DF);
+  position: relative;
+  overflow: hidden;
+}
+.preview-overlay {
+  position: absolute;
+  inset: auto 8px 8px 8px;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(10px);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.preview-source {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.preview-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Form */
+.form {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; }
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.input {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: #ccc; }
+.textarea { resize: none; line-height: 1.5; }
+
+/* Intent row */
+.intent-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.intent-btn {
+  padding: 4px 9px;
+  border-radius: 99px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.intent-btn:hover { border-color: var(--accent); color: var(--accent); }
+.intent-btn.active {
+  background: var(--accent-subtle);
+  color: #004D2D;
+  border-color: rgba(0,105,62,0.3);
+}
+
+/* Save button */
+.save-btn {
+  padding: 10px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,105,62,0.25);
+}
+.save-btn:hover { background: var(--accent-hover); }
+.save-btn:active { transform: scale(0.98); }
+.save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Success state */
+.success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  text-align: center;
+}
+.success-icon {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+}
+.success-text { font-weight: 800; font-size: 14px; }
+.success-sub { font-size: 11px; color: var(--text-3); }
+
+/* Footer */
+.footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+.footer a {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.footer a:hover { text-decoration: underline; }
