@@ -2,7 +2,7 @@
 
 // ─── Config ──────────────────────────────────────────────
 // Change this to your deployed Clutch URL when live
-const CLUTCH_URL = "https://clutch-grab-what-you-like.netlify.app";
+const CLUTCH_URL = "https://clutch-clean.netlify.app";
 
 // ─── State ───────────────────────────────────────────────
 let pageUrl   = "";
