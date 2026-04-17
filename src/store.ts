@@ -1,84 +1,90 @@
-import type { AppState, Item, Cluster, Page, Board, User, Intent } from "./types";
-import { seedItems, seedClusters, seedPages, seedBoards } from "./data";
+import type { AppState, Item, Cluster, Page, User, Intent } from "./types";
+import { seedItems, seedClusters, seedPages } from "./data";
+import { supabase } from "./supabase";
 
+// ─── localStorage cache keys ─────────────────────────────
 const KEYS = {
-  user:  "clutch_user",
-  items: "clutch_items",
+  items:    "clutch_items",
   clusters: "clutch_clusters",
-  pages: "clutch_pages",
-  boards: "clutch_boards",
-  pending: "clutch_pending",
+  pages:    "clutch_pages",
+  pending:  "clutch_pending",
 } as const;
 
-// ─── Auth ────────────────────────────────────────────────
-export function getUser(): User | null {
-  try { return JSON.parse(localStorage.getItem(KEYS.user) ?? "null"); }
-  catch { return null; }
+// ─── Auth (Supabase) ─────────────────────────────────────
+export async function signUp(name: string, email: string, password: string): Promise<User | Error> {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { name } },
+  });
+  if (error) return new Error(error.message);
+  if (!data.user) return new Error("Sign-up failed. Please try again.");
+  return {
+    id:        data.user.id,
+    name:      name,
+    email:     data.user.email ?? email,
+    createdAt: data.user.created_at,
+  };
 }
 
-export function saveUser(user: User) {
-  localStorage.setItem(KEYS.user, JSON.stringify(user));
+export async function signIn(email: string, password: string): Promise<User | Error> {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return new Error(error.message);
+  if (!data.user) return new Error("Sign-in failed. Please try again.");
+  return {
+    id:        data.user.id,
+    name:      data.user.user_metadata?.name ?? email.split("@")[0],
+    email:     data.user.email ?? email,
+    createdAt: data.user.created_at,
+  };
+}
+
+export function getUser(): User | null {
+  // Sync read from Supabase session cache (set after login)
+  const raw = localStorage.getItem("clutch_sb_user");
+  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
 }
 
 export function clearUser() {
-  localStorage.removeItem(KEYS.user);
+  localStorage.removeItem("clutch_sb_user");
+  supabase.auth.signOut();
 }
 
-// Simple demo: store hashed emails + name
-// In production this would hit an auth API.
-const ACCOUNTS_KEY = "clutch_accounts";
-
-type Account = { email: string; passwordHash: string; name: string; id: string };
-
-function hashPassword(pw: string): string {
-  // Simple deterministic hash for demo purposes (NOT for production)
-  let h = 0;
-  for (let i = 0; i < pw.length; i++) {
-    h = (Math.imul(31, h) + pw.charCodeAt(i)) | 0;
-  }
-  return h.toString(36);
-}
-
-function getAccounts(): Account[] {
-  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) ?? "[]"); }
-  catch { return []; }
-}
-
-export function signUp(name: string, email: string, password: string): User | Error {
-  const accounts = getAccounts();
-  if (accounts.find(a => a.email.toLowerCase() === email.toLowerCase())) {
-    return new Error("An account with this email already exists.");
-  }
-  const account: Account = {
-    id: crypto.randomUUID(),
-    email: email.toLowerCase(),
-    passwordHash: hashPassword(password),
-    name,
+// ─── Supabase DB ─────────────────────────────────────────
+export async function loadFromSupabase(userId: string): Promise<AppState | null> {
+  const { data, error } = await supabase
+    .from("user_saves")
+    .select("items, clusters, pages")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return {
+    items:    data.items    ?? seedItems,
+    clusters: data.clusters ?? seedClusters,
+    pages:    data.pages    ?? seedPages,
+    boards:   [],
   };
-  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify([...accounts, account]));
-  const user: User = { id: account.id, name, email: email.toLowerCase(), createdAt: new Date().toISOString() };
-  saveUser(user);
-  return user;
 }
 
-export function signIn(email: string, password: string): User | Error {
-  const accounts = getAccounts();
-  const account = accounts.find(a => a.email.toLowerCase() === email.toLowerCase());
-  if (!account) return new Error("No account found with that email.");
-  if (account.passwordHash !== hashPassword(password)) return new Error("Incorrect password.");
-  const user: User = { id: account.id, name: account.name, email: account.email, createdAt: new Date().toISOString() };
-  saveUser(user);
-  return user;
+export async function syncToSupabase(
+  userId: string,
+  items: Item[],
+  clusters: Cluster[],
+  pages: Page[]
+) {
+  await supabase.from("user_saves").upsert(
+    { user_id: userId, items, clusters, pages, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" }
+  );
 }
 
-// ─── App state ───────────────────────────────────────────
+// ─── localStorage cache (fast local reads/writes) ────────
 function load<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
     return raw ? JSON.parse(raw) : fallback;
   } catch { return fallback; }
 }
-
 function save<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
 }
@@ -88,23 +94,16 @@ export function loadState(): AppState {
     items:    load(KEYS.items,    seedItems),
     clusters: load(KEYS.clusters, seedClusters),
     pages:    load(KEYS.pages,    seedPages),
-    boards:   load(KEYS.boards,   seedBoards),
+    boards:   [],
   };
 }
 
-export function saveItems(items: Item[]) { save(KEYS.items, items); }
-export function saveClusters(clusters: Cluster[]) { save(KEYS.clusters, clusters); }
-export function savePages(pages: Page[]) { save(KEYS.pages, pages); }
-export function saveBoards(boards: Board[]) { save(KEYS.boards, boards); }
+export function saveItems(items: Item[])         { save(KEYS.items,    items); }
+export function saveClusters(c: Cluster[])       { save(KEYS.clusters, c); }
+export function savePages(p: Page[])             { save(KEYS.pages,    p); }
 
 // ─── Extension bridge ────────────────────────────────────
-// Extension saves a pending item to localStorage; we read on mount.
-export type PendingCapture = {
-  url: string;
-  title: string;
-  source: string;
-  intent: Intent;
-};
+export type PendingCapture = { url: string; title: string; source: string; intent: Intent };
 
 export function getPendingCapture(): PendingCapture | null {
   try {

@@ -287,8 +287,9 @@ textarea.input { resize: vertical; min-height: 80px; line-height: 1.5; }
 
 /* Features strip */
 .features-strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1rem;
   padding: 3rem 2.5rem 4rem;
   max-width: 1100px;
@@ -297,6 +298,9 @@ textarea.input { resize: vertical; min-height: 80px; line-height: 1.5; }
 }
 
 .feature-card {
+  flex: 0 1 calc(25% - 0.75rem);
+  min-width: 220px;
+  max-width: 280px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
@@ -404,6 +408,12 @@ textarea.input { resize: vertical; min-height: 80px; line-height: 1.5; }
   padding: 1rem 0.75rem 1.5rem;
   border-right: 1px solid var(--border);
   background: var(--surface);
+}
+
+/* ─── Circular logo helper ──────────────────────────────── */
+img[alt="Clutch"] {
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .sidebar-logo {

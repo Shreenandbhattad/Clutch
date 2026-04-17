@@ -6,9 +6,10 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { Item, Cluster, Page, User, Intent } from "../types";
 import {
   loadState, saveItems, saveClusters, savePages,
-  getUser, clearUser, getPendingCapture,
+  getPendingCapture, loadFromSupabase, syncToSupabase,
   buildTags, buildSummary, assignCluster, buildCover,
 } from "../store";
+import { supabase } from "../supabase";
 import { seedSuggestions } from "../data";
 
 // ─── App context ─────────────────────────────────────────
@@ -47,10 +48,9 @@ const NAV = [
 export default function AppLayout() {
   const navigate = useNavigate();
 
-  const [user] = useState<User>(() => {
-    const u = getUser();
-    return u ?? { id: "demo", name: "Demo User", email: "demo@clutch.app", createdAt: new Date().toISOString() };
-  });
+  const [user,    setUser]   = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [items,    setItemsState]    = useState<Item[]>   (() => loadState().items);
   const [clusters, setClustersState] = useState<Cluster[]>(() => loadState().clusters);
@@ -69,6 +69,53 @@ export default function AppLayout() {
   const [inspectorWidth, setInspectorWidth] = useState(300);
   const inspectorResizeRef = useRef<{ startX: number; startW: number } | null>(null);
 
+  // ─── Supabase auth + data load ──────────────────────────
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const u: User = {
+          id:        session.user.id,
+          name:      session.user.user_metadata?.name ?? session.user.email?.split("@")[0] ?? "User",
+          email:     session.user.email ?? "",
+          createdAt: session.user.created_at,
+        };
+        setUser(u);
+        // Load data from Supabase, fall back to localStorage seeds
+        const remote = await loadFromSupabase(session.user.id);
+        if (remote) {
+          setItemsState(remote.items);
+          setClustersState(remote.clusters);
+          setPagesState(remote.pages);
+          saveItems(remote.items);
+          saveClusters(remote.clusters);
+          savePages(remote.pages);
+        }
+      } else {
+        navigate("/");
+      }
+      setAuthReady(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT" || !session) navigate("/");
+    });
+
+    return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Supabase sync on data change ───────────────────────
+  useEffect(() => {
+    if (!authReady) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(async () => {
+      const { data: { user: sbUser } } = await supabase.auth.getUser();
+      if (sbUser) syncToSupabase(sbUser.id, items, clusters, pages);
+    }, 2000);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, clusters, pages]);
+
+  // ─── Panel resize listeners ──────────────────────────────
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
       if (sidebarResizeRef.current) {
@@ -136,12 +183,24 @@ export default function AppLayout() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleSignOut = () => { clearUser(); navigate("/"); };
+  const handleSignOut = async () => {
+    localStorage.removeItem("clutch_sb_user");
+    await supabase.auth.signOut();
+    navigate("/");
+  };
   const readLaterCount = items.filter(i => i.intent === "Read later" && !i.readAt).length;
+
+  if (!authReady) return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: "var(--bg)" }}>
+      <img src="/logo.png" alt="Clutch" style={{ height: 52, width: "auto", borderRadius: "50%", opacity: 0.75 }} />
+    </div>
+  );
+
+  const safeUser = user ?? { id: "guest", name: "Guest", email: "", createdAt: new Date().toISOString() };
 
   return (
     <Ctx.Provider value={{
-      user, items, clusters, pages,
+      user: safeUser, items, clusters, pages,
       setItems, setClusters, setPages,
       selectedItemId, setSelectedItemId,
       inspectorWidth,
@@ -181,10 +240,10 @@ export default function AppLayout() {
           </NavLink>
 
           <div className="sidebar-user">
-            <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+            <div className="user-avatar">{safeUser.name.charAt(0).toUpperCase()}</div>
             <div className="sidebar-user-info">
-              <div className="name">{user.name}</div>
-              <div className="email truncate">{user.email}</div>
+              <div className="name">{safeUser.name}</div>
+              <div className="email truncate">{safeUser.email}</div>
             </div>
             <button className="sidebar-signout btn" title="Sign out" onClick={handleSignOut}>⎋</button>
           </div>

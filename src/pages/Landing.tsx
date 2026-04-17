@@ -124,23 +124,23 @@ function AuthPanel({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handle = (e: React.FormEvent) => {
+  const handle = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      const result = mode === "signup"
-        ? signUp(name.trim(), email.trim(), password)
-        : signIn(email.trim(), password);
+    const result = mode === "signup"
+      ? await signUp(name.trim(), email.trim(), password)
+      : await signIn(email.trim(), password);
 
-      if (result instanceof Error) {
-        setError(result.message);
-        setLoading(false);
-      } else {
-        onSuccess();
-      }
-    }, 400); // simulate network
+    if (result instanceof Error) {
+      setError(result.message);
+      setLoading(false);
+    } else {
+      // Cache user for sync getUser() calls
+      localStorage.setItem("clutch_sb_user", JSON.stringify(result));
+      onSuccess();
+    }
   };
 
   return (
