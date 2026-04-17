@@ -16,7 +16,7 @@ export default function Landing() {
       {/* Nav */}
       <nav className="landing-nav">
         <div className="landing-logo">
-          <div className="logo-mark">C</div>
+          <img src="/logo.png" alt="Clutch" style={{ height: 28, width: "auto" }} />
           Clutch
         </div>
         <div className="landing-nav-actions">
@@ -27,6 +27,7 @@ export default function Landing() {
 
       {/* Hero */}
       <div className="landing-hero">
+        <img src="/logo.png" alt="Clutch" style={{ height: 72, width: "auto", marginBottom: "1.5rem" }} />
         <div className="hero-eyebrow">
           <span>✦</span> Now in early access
         </div>
@@ -146,8 +147,8 @@ function AuthPanel({
     <div className="auth-panel">
       <div className="auth-card">
         <div className="auth-logo">
-          <div className="logo-mark">C</div>
-          Clutch
+          <img src="/logo.png" alt="Clutch" style={{ height: 52, width: "auto" }} />
+          <span>Clutch</span>
         </div>
         <h2 className="auth-title">
           {mode === "signup" ? "Create your account" : "Welcome back"}

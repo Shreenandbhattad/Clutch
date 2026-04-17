@@ -154,7 +154,7 @@ export default function AppLayout() {
           style={{ width: sidebarWidth, minWidth: sidebarWidth }}
         >
           <div className="sidebar-logo">
-            <div className="logo-mark" style={{ width: 28, height: 28, fontSize: "0.85rem" }}>C</div>
+            <img src="/logo.png" alt="Clutch" style={{ height: 26, width: "auto" }} />
             Clutch
           </div>
 

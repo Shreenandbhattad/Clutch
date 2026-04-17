@@ -29,7 +29,7 @@ export default function App() {
         background: "var(--bg)", flexDirection: "column", gap: "1rem", padding: "2rem",
       }}>
         <div style={{ textAlign: "center", maxWidth: 480 }}>
-          <div className="logo-mark" style={{ margin: "0 auto 1rem", width: 48, height: 48, fontSize: "1.2rem" }}>C</div>
+          <img src="/logo.png" alt="Clutch" style={{ height: 64, width: "auto", margin: "0 auto 1rem", display: "block" }} />
           <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "1.8rem", letterSpacing: "-0.02em", marginBottom: "0.5rem" }}>
             Someone shared a Clutch save
           </h2>
