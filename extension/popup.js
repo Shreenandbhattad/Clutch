@@ -2,7 +2,7 @@
 
 // ─── Config ──────────────────────────────────────────────
 // Change this to your deployed Clutch URL when live
-const CLUTCH_URL = "https://clutch-clean.netlify.app";
+const CLUTCH_URL = "https://clutch-dun.vercel.app";
 
 // ─── State ───────────────────────────────────────────────
 let pageUrl   = "";
